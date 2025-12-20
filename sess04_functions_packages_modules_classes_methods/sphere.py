@@ -67,5 +67,5 @@ class Sphere(Circle):
                 f"\n" + "-" * 40 +
                 f"\nRadius: {self.radius} cm."
                 f"\nSurface Area: {self.calc_surface_area():.2f} cm^2."
-                f"\nPerimeter: {self.calc_volume():.2f} cm^3."
+                f"\nVolume: {self.calc_volume():.2f} cm^3."
                 f"\n" + "-" * 40)

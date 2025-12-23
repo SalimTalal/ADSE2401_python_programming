@@ -42,5 +42,12 @@ def validate_phone_number(phone_number):
         print(f"The number {phone_number} is not a valid Kenyan phone number.")
 
 if __name__ == "__main__":
-    phone = input("Enter phone number: ")
+    phone = input("Enter phone number for validation : ")
     validate_phone_number(phone)
+
+# Prompt the user for their phone number
+phone_num = input("Please enter your phone number and I'll tell you if it's a valid"
+                  " Kenyan phone number. : \n")
+
+# Validate the user's phone number
+validate_phone_number(phone_num)

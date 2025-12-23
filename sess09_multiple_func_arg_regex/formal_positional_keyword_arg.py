@@ -1,8 +1,4 @@
 # Python script/file to demonstrate the use of formal, positional and keyword arguments in a function
-from tkinter import messagebox
-
-from sess03_python_statements_and_syntax.python_decision_constructs import password
-
 
 # function definition
 def profile(name, *args, **kwargs):

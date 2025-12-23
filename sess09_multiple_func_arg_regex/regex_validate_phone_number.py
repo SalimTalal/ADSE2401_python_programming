@@ -40,3 +40,7 @@ def validate_phone_number(phone_number):
         print(f"The number {phone_number} is a valid Kenyan phone number.")
     else:
         print(f"The number {phone_number} is not a valid Kenyan phone number.")
+
+if __name__ == "__main__":
+    phone = input("Enter phone number: ")
+    validate_phone_number(phone)

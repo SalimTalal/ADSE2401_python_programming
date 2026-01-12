@@ -1,6 +1,6 @@
 """
 Python Sets
-A set in Python is a built in type that represents an unordered collection of elements of the same or defferent types.
+A set in Python is a built in type that represents an unordered collection of elements of the same or different types.
 Sets DON'T allow duplicates and are mutable. They are suitable for tasks that involve checking
 membership, removing duplicates and performing mathematical operations like
 instersection, union, difference, and symmetric_difference.

@@ -6,6 +6,7 @@ import mysql.connector
 import tkinter as tk
 from tkinter import ttk, messagebox
 from datetime import datetime
+
 from tkcalendar import DateEntry # For date picker
 
 from db_conn import db_config
@@ -42,7 +43,7 @@ class StudentApp:
 
         # Student Birthdate (Date Picker)
         tk.Label(form_frame, text="Birth Date *").grid(row=2,column=0,sticky="e", padx=8, pady=5)
-        self.entries["birth_date"] = DataEntry(
+        self.entries["birth_date"] = DateEntry(
             form_frame,
             width=28,
             date_pattern="yyyy-mm-dd",
@@ -54,7 +55,7 @@ class StudentApp:
 
         # Student Gender Dropdown
         tk.Label(form_frame, text="Gender *").grid(row=3,column=0,sticky="e", padx=8, pady=5)
-        self.entries["gender"] = tkk.Combobox(
+        self.entries["gender"] = ttk.Combobox(
             form_frame,
             values=["M","F"],
             state="readonly",
@@ -77,7 +78,7 @@ class StudentApp:
         tk.Button(btn_frame, text="Clear", width=14,command=self.clear_form).pack(side="left",padx=5)
 
         # ------------------------ Search Frame -----------------------------------------------
-        search_frame = tk.LabelFrame(form_frame, text="Search/Filter",padx=10, pady=7)
+        search_frame = tk.LabelFrame(root, text="Search/Filter",padx=10, pady=7)
         search_frame.pack(fill="x", padx=10, pady=5)
 
         tk.Label(search_frame,text="Search By").pack(side="left",pady=5)
@@ -105,7 +106,7 @@ class StudentApp:
         columns = ("Student Number","Student Name","Birth Date","Gender","City")
         self.tree = ttk.Treeview(tree_frame, columns=columns, show="headings",height=15)
 
-        for col, widget in zip(columns,(110,220,100,80,160)):
+        for col, width in zip(columns,(110,220,100,80,160)):
             self.tree.heading(col, text=col.replace("_"," "))
             self.tree.column(col, width=width, anchor="center" if col != "Name" else "w")
 
@@ -205,3 +206,27 @@ class StudentApp:
     def delete_record(self):
         data = self.get_form_data()
         if not data or not self.ensure_connection():
+            return
+
+    # -----------------------------------------------------------------------------
+    def clear_form(self):
+        for key, widget in self.entries.items():
+            if isinstance(widget, ttk.Combobox):
+                widget.set("M")
+            elif isinstance(widget, DateEntry):
+                widget.set_date(datetime.today())
+            else:
+                widget.delete(0, tk.END)
+
+    # ------------------------------------------------------------------------------
+    def __del__(self):
+        if self.conn and self.conn.is_connected():
+            if self.cursor and self.cursor.is_connected():
+                self.cursor.close()
+            self.conn.close()
+
+# Run the application
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = StudentApp(root)
+    root.mainloop()

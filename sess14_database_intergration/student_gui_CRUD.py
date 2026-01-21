@@ -38,12 +38,12 @@ class StudentApp:
 
         # Student Name
         tk.Label(form_frame, text='Student Name').grid(row=1,column=0,sticky="e", padx=8, pady=5)
-        self.entries["student_name"] = tk.Entry(form_frame, width=32)
-        self.entries["student_name"].grid(row=1, column=1, sticky="w")
+        self.entries["name"] = tk.Entry(form_frame, width=32)
+        self.entries["name"].grid(row=1, column=1, sticky="w")
 
         # Student Birthdate (Date Picker)
         tk.Label(form_frame, text="Birth Date *").grid(row=2,column=0,sticky="e", padx=8, pady=5)
-        self.entries["birth_date"] = DateEntry(
+        self.entries["birthdate"] = DateEntry(
             form_frame,
             width=28,
             date_pattern="yyyy-mm-dd",
@@ -51,7 +51,7 @@ class StudentApp:
             foreground="white",
             borderwidth=2,
         )
-        self.entries["birth_date"].grid(row=2, column=1, sticky="w")
+        self.entries["birthdate"].grid(row=2, column=1, sticky="w")
 
         # Student Gender Dropdown
         tk.Label(form_frame, text="Gender *").grid(row=3,column=0,sticky="e", padx=8, pady=5)
@@ -85,7 +85,7 @@ class StudentApp:
 
         self.search_field = ttk.Combobox(
             search_frame,
-            values=["StudentNo","Name","City"],
+            values=["StudentNO","Name","City"],
             state="readonly",
             width=15,
         )
@@ -94,9 +94,9 @@ class StudentApp:
 
         self.search_value = tk.Entry(search_frame, width=30)
         self.search_value.pack(side="left",padx=5)
-        self.search_value.bind("<Return>", lambda e: self.search_records())
+        self.search_value.bind("<Return>", lambda e: self.search_record())
 
-        tk.Button(search_frame,text="Search",width=12,command=self.search_records).pack(side="left",padx=5)
+        tk.Button(search_frame,text="Search",width=12,command=self.search_record).pack(side="left",padx=5)
         tk.Button(search_frame, text="Show All",width=12,command=self.load_all_records).pack(side="left",padx=5)
 
         # ------------------------ Tree View -----------------------------------------------
@@ -156,7 +156,7 @@ class StudentApp:
         data = {
             "student_no": self.entries["student_no"].get().strip(),
             "name": self.entries["name"].get().strip(),
-            "birth_date": self.entries["birth_date"].get_date().strftime("%m-%d-%Y"),
+            "birthdate": self.entries["birthdate"].get_date().strftime("%m-%d-%Y"),
             "gender": self.entries["gender"].get(),
             "city": self.entries["city"].get(),
         }
@@ -204,9 +204,67 @@ class StudentApp:
 
     # ------------------------------------------------------------------------------
     def delete_record(self):
-        data = self.get_form_data()
-        if not data or not self.ensure_connection():
+        student_no = self.entries["student_no"].get().strip()
+        if not student_no:
+            messagebox.showerror("Missing Data", "Please enter or select a student number to delete.")
             return
+        if not self.ensure_connection():
+            return
+
+        if not messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete {student_no}?"):
+            return
+
+        try:
+            self.cursor.execute("DELETE FROM student WHERE StudentNO=%s", (student_no,))
+            self.conn.commit()
+            if self.cursor.rowcount > 0:
+                messagebox.showinfo("Success", f"Student record {student_no} successfully deleted.")
+                self.load_all_records()
+                self.clear_form()
+            else:
+                messagebox.showwarning("Record Not Found", f"No record with {student_no} found.")
+        except mysql.connector.Error as err:
+            messagebox.showerror("Database Error", f"Unable to delete record.\n{err}")
+
+    # -------------------------------------------------------------------------------
+    def search_record(self):
+        if not self.ensure_connection():
+            return
+
+        field = self.search_field.get()
+        value = self.search_value.get().strip()
+
+        if not value:
+            self.load_all_records()
+            return
+
+        try:
+            query = f"SELECT StudentNO, Name, Birthdate, Gender, City FROM student WHERE {field} LIKE %s"
+            self.cursor.execute(query, (f"%{value}%",))
+            rows = self.cursor.fetchall()
+
+            self.tree.delete(*self.tree.get_children())
+            for row in rows:
+                self.tree.insert('', tk.END, values=row)
+        except mysql.connector.Error as err:
+            messagebox.showerror("Database Error", f"Unable to search record.\n{err}")
+
+    # ----------------------------------------------------------------------------
+    def on_row_select(self, event):
+        selected = self.tree.selection()
+        if not selected:
+            return
+        values = self.tree.item(selected[0])["values"]
+        self.clear_form()
+
+        keys = ["student_no", "name", "birthdate", "gender", "city"]
+        for key, value in zip(keys, values):
+            if key == "birthdate":
+                self.entries[key].set_date(value)
+            elif key == "gender":
+                self.entries[key].set(value)
+            else:
+                self.entries[key].insert(0,value)
 
     # -----------------------------------------------------------------------------
     def clear_form(self):
